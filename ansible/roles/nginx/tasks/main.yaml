@@ -1,0 +1,17 @@
+---
+- name: Install NGINX
+  apt:
+    name: nginx
+    state: present
+
+- name: Copy NGINX config
+  copy:
+    src: ../../nginx/default.conf
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+
+- name: Restart NGINX
+  service:
+    name: nginx
+    state: restarted
+
