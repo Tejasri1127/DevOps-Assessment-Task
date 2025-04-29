@@ -1,4 +1,7 @@
-name: Deploy Yii2 App to EC2
+
+# .github/workflows/deploy.yml
+
+name: Deploy Yii2 App
 
 on:
   push:
@@ -6,29 +9,23 @@ on:
       - main
 
 jobs:
-  deploy:
-    name: Deploy
+  build-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Install PHP & Composer
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y unzip curl php php-cli php-zip php-dom composer docker.io docker-compose
 
-      - name: Build Docker Image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/yii2-app:latest ./docker
+      - name: Install PHP dependencies
+        run: composer install
 
-      - name: Push Docker Image
-        run: docker push ${{ secrets.DOCKER_USERNAME }}/yii2-app:latest
+      - name: Build Docker images
+        run: docker-compose build
 
-      - name: SSH into EC2 and update Swarm service
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            docker service rm yii2-app || true
-            docker service create --name yii2-app --publish 8080:80 ${{ secrets.DOCKER_USERNAME }}/yii2-app:latest
+      - name: Run Docker containers
+        run: docker-compose up -d
