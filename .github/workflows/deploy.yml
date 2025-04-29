@@ -14,7 +14,12 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3-
+        
+      - name: Install Docker using script
+        run: |
+          curl -fsSL https://get.docker.com -o get-docker.sh
+          sh get-docker.sh
 
       - name: Install PHP & Composer
         run: |
